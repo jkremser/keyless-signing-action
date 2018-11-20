@@ -1,1 +1,1 @@
-# telekom-sso
+# Telekom Panamax Project
