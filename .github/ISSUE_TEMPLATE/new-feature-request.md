@@ -1,21 +1,33 @@
 ---
 name: New feature request
-about: Change request to a product team
+about: Feature request to a product team
 title: ''
 labels: customer-request
 assignees: ''
 
 ---
 
-**Is your request related to a problem? Please describe.**
-- 
+### Problem or Ask
+<!--
+> What is the ask or problem? 
+-->
 
-**Describe the solution you'd like**
-- 
+### Priority
+<!--
+- When is a resolution or update to this ticket needed? 
+- Are there any factors or context the team should know about?
+-->
 
-**Priority**
+### Placement
+<!--
+- Which team and/or SA should own? Leave blank if you don' know. 
+-->
 
-**A contact person to clarify requirements / Github handle if possible**
+### Additional Info
+<!--
+- Add a contact person to clarify requirements / Github handle if possible
+- Add proposed solution if you like
+- Add any additional information that you think will be helpful 
+-->
 
-
-( cc @snizhana-dynnyk for automation purposes)
+( cc @puja108 for automation purposes)
