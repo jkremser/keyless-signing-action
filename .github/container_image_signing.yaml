@@ -1,0 +1,82 @@
+name: Retag Push Sign
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Fully qualified container image, including container registry and tag
+        required: true
+        default: ""
+      digest:
+        description: "sha256:abcd.. of the image we would like to sign. If not provided the image provided as image param will be pulled and the digest will be read from it, but this way we have no guarantee, that 
+          attacker didn't tamper with the image during the transmission (docker images --digests)"
+        required: false
+        default: ""
+
+env:
+  NEW_REPO: ghcr.io
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Login to GitHub
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker.io
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: docker.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: get_digest
+        run: |
+          docker pull ${{ github.event.inputs.image }}
+          CONTAINER_DIGEST="$(docker inspect ${{ github.event.inputs.image }} --format '{{ index .RepoDigests 0 }}' | cut -d '@' -f 2)"
+          # if digest was provided, check if it matches
+          if [ "${{ github.event.inputs.digest }}x" != "x${CONTAINER_DIGEST}" ]; then
+            echo "provided digest of container image doesn't match with the calculated one!"
+            exit 1
+          fi
+          echo "CONTAINER_DIGEST=${CONTAINER_DIGEST}" >> $GITHUB_ENV
+
+      - name: retag+push
+        run: |
+          NEW_IMG="${NEW_REPO}/$(echo ${{ github.event.inputs.image }} | cut -d/ -f2-)"
+          docker tag ${{ github.event.inputs.image }} ${NEW_IMG}
+          docker push ${NEW_IMG}
+          echo "NEW_IMG=${NEW_IMG}" >> $GITHUB_ENV
+
+
+      - uses: sigstore/cosign-installer@main
+
+      - name: Sign the images
+        run: |
+          cosign sign ${NEW_IMG}
+        env:
+          COSIGN_EXPERIMENTAL: 1
+
+      - name: Verify the pushed tag
+        run: |
+          {
+            echo "To verify the image, run:"
+            echo '```bash'
+            echo "cosign verify ${NEW_IMG}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          set -o pipefail
+          cosign verify ${NEW_IMG} | tee -a ${GITHUB_STEP_SUMMARY}
+          set +o pipefail
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+        env:
+          COSIGN_EXPERIMENTAL: 1
