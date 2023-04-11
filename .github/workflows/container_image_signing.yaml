@@ -5,7 +5,7 @@ on:
       image:
         description: Fully qualified container image, including container registry and tag
         required: true
-        default: "docker.io/giantswarm/csi-attacher"
+        default: "docker.io/giantswarm/csi-attacher:v3.5.0"
       digest:
         description: "sha256:abcd.. of the image we would like to sign. If not provided the image provided as image param will be pulled and the digest will be read from it, but this way we have no guarantee, that 
           attacker didn't tamper with the image during the transmission (docker images --digests)"
@@ -45,7 +45,7 @@ jobs:
           docker pull ${{ github.event.inputs.image }}
           CONTAINER_DIGEST="$(docker inspect ${{ github.event.inputs.image }} --format '{{ index .RepoDigests 0 }}' | cut -d '@' -f 2)"
           # if digest was provided, check if it matches
-          if [[ -z "${{ github.event.inputs.digest }}" and "${{ github.event.inputs.digest }}x" != "${CONTAINER_DIGEST}x" ]]; then
+          if [[ -z "${{ github.event.inputs.digest }}" ]] && [[ "${{ github.event.inputs.digest }}x" != "${CONTAINER_DIGEST}x" ]]; then
             echo "provided digest of container image doesn't match with the calculated one!"
             exit 1
           fi
