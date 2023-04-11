@@ -61,11 +61,13 @@ jobs:
 
 
       - uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: 'v1.3.1'
 
       - name: Sign the images
         run: |
           NEW_IMG_WITH_DIGEST="${NEW_REGISTRY}/${NEW_ORG}/$(echo ${{ github.event.inputs.image }} | cut -d/ -f3- | cut -d: -f1)@${CONTAINER_DIGEST}"
-          cosign sign ${NEW_IMG_WITH_DIGEST}
+          cosign sign --force ${NEW_IMG_WITH_DIGEST}
           echo "NEW_IMG_WITH_DIGEST=${NEW_IMG_WITH_DIGEST}" >> $GITHUB_ENV
         env:
           COSIGN_EXPERIMENTAL: 1
@@ -75,10 +77,10 @@ jobs:
           {
             echo "To verify the image, run:"
             echo '```bash'
-            echo "cosign verify ${NEW_IMG}"
+            echo "cosign verify ${NEW_IMG} | jq ."
           } >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
-          cosign verify ${NEW_IMG} | tee -a ${GITHUB_STEP_SUMMARY}
+          cosign verify ${NEW_IMG} | jq . | tee -a ${GITHUB_STEP_SUMMARY}
           set +o pipefail
           echo '```' >> "$GITHUB_STEP_SUMMARY"
         env:
