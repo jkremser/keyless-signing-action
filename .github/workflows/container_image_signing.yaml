@@ -17,7 +17,7 @@ env:
 
 
 jobs:
-  build:
+  sign:
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -45,7 +45,7 @@ jobs:
           docker pull ${{ github.event.inputs.image }}
           CONTAINER_DIGEST="$(docker inspect ${{ github.event.inputs.image }} --format '{{ index .RepoDigests 0 }}' | cut -d '@' -f 2)"
           # if digest was provided, check if it matches
-          if [ "${{ github.event.inputs.digest }}x" != "x${CONTAINER_DIGEST}" ]; then
+          if [[ -z "${{ github.event.inputs.digest }}" and "${{ github.event.inputs.digest }}x" != "${CONTAINER_DIGEST}x" ]]; then
             echo "provided digest of container image doesn't match with the calculated one!"
             exit 1
           fi
