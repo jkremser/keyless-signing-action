@@ -13,7 +13,8 @@ on:
         default: "sha256:9ad87b69527daeb4f8c52aeee012812cd05241e1ec8bbb8e5b1e237ce57b6895"
 
 env:
-  NEW_REPO: ghcr.io
+  NEW_REGISTRY: docker.io
+  NEW_ORG: jkremser
 
 
 jobs:
@@ -53,7 +54,7 @@ jobs:
 
       - name: retag+push
         run: |
-          NEW_IMG="${NEW_REPO}/$(echo ${{ github.event.inputs.image }} | cut -d/ -f2-)"
+          NEW_IMG="${NEW_REGISTRY}/${NEW_ORG}/$(echo ${{ github.event.inputs.image }} | cut -d/ -f3-)"
           docker tag ${{ github.event.inputs.image }} ${NEW_IMG}
           docker push ${NEW_IMG}
           echo "NEW_IMG=${NEW_IMG}" >> $GITHUB_ENV
@@ -63,7 +64,9 @@ jobs:
 
       - name: Sign the images
         run: |
-          cosign sign ${NEW_IMG}
+          NEW_IMG_WITH_DIGEST="${NEW_REGISTRY}/${NEW_ORG}/$(echo ${{ github.event.inputs.image }} | cut -d/ -f3- | cut -d: -f1)@${CONTAINER_DIGEST}"
+          cosign sign ${NEW_IMG_WITH_DIGEST}
+          echo "NEW_IMG_WITH_DIGEST=${NEW_IMG_WITH_DIGEST}" >> $GITHUB_ENV
         env:
           COSIGN_EXPERIMENTAL: 1
 
