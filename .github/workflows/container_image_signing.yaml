@@ -5,12 +5,12 @@ on:
       image:
         description: Fully qualified container image, including container registry and tag
         required: true
-        default: ""
+        default: "docker.io/giantswarm/csi-attacher"
       digest:
         description: "sha256:abcd.. of the image we would like to sign. If not provided the image provided as image param will be pulled and the digest will be read from it, but this way we have no guarantee, that 
           attacker didn't tamper with the image during the transmission (docker images --digests)"
         required: false
-        default: ""
+        default: "sha256:9ad87b69527daeb4f8c52aeee012812cd05241e1ec8bbb8e5b1e237ce57b6895"
 
 env:
   NEW_REPO: ghcr.io
