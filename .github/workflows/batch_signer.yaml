@@ -1,0 +1,28 @@
+name: Sign 3 images
+on:
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: img1
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          workflow: Retag Push Sign
+          inputs: '{ "image": "docker.io/giantswarm/csi-attacher:v3.5.0", "digest": "sha256:9ad87b69527daeb4f8c52aeee012812cd05241e1ec8bbb8e5b1e237ce57b6895" }'
+
+      - name: img2
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          workflow: Retag Push Sign
+          inputs: '{ "image": "docker.io/giantswarm/livenessprobe:v2.7.0", "digest": "sha256:286a98e5f5df1c8bd8bc2a43702525080bb8a12385f1b2615d178ee62a4f509f" }'
+
+      - name: img3
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          workflow: Retag Push Sign
+          inputs: '{ "image": "docker.io/giantswarm/csi-snapshotter:v6.0.1", "digest": "sha256:9363556bb1d44a5a981e8ae8fb7c3784830a4a1d47a7a20f9613615ae0bc6901" }'
