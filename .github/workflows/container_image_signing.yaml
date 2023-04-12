@@ -67,21 +67,26 @@ jobs:
       - name: Sign the images
         run: |
           NEW_IMG_WITH_DIGEST="${NEW_REGISTRY}/${NEW_ORG}/$(echo ${{ github.event.inputs.image }} | cut -d/ -f3- | cut -d: -f1)@${CONTAINER_DIGEST}"
-          cosign sign --force ${NEW_IMG_WITH_DIGEST}
+          _output=$(cosign sign --force ${NEW_IMG_WITH_DIGEST})
+          LOG_INDEX=$(echo $_output | grep "created with index:" | cut -d: -f2 | awk '{$1=$1};1')
           echo "NEW_IMG_WITH_DIGEST=${NEW_IMG_WITH_DIGEST}" >> $GITHUB_ENV
+          echo "LOG_INDEX=${LOG_INDEX}" >> $GITHUB_ENV
         env:
           COSIGN_EXPERIMENTAL: 1
 
       - name: Verify the pushed tag
         run: |
           {
-            echo "To verify the image, run:"
             echo '```bash'
             echo "cosign verify ${NEW_IMG} | jq ."
           } >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
           cosign verify ${NEW_IMG} | jq . | tee -a ${GITHUB_STEP_SUMMARY}
           set +o pipefail
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo '```'
+            echo "Record in Rekor transparency log: https://search.sigstore.dev/?logIndex=${LOG_INDEX}."
+          } >> "$GITHUB_STEP_SUMMARY"
+
         env:
           COSIGN_EXPERIMENTAL: 1
